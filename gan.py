@@ -32,3 +32,4 @@ gan['d'] = discriminator
 
 
 train_gan(gan, dataloader)
+    

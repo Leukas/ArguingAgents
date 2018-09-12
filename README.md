@@ -11,6 +11,6 @@ https://arxiv.org/pdf/1803.00338.pdf
 
 # Data
 
-Salmon retinal ganglion cells
+Salamander retinal ganglion cells
 https://datarep.app.ist.ac.at/61/
 

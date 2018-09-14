@@ -21,13 +21,13 @@ args = parser.parse_args()
 print(args)
 
 img_shape = (args.channels, args.img_size, args.img_size)
-img_shape = (1, 430, 128)
-# dataloader = get_MNIST_dataloaders(args.batch_size)
-dataloaders = get_EEG_dataloaders(args.batch_size)
-print(len(dataloaders['train']))
-for data, labels in dataloaders['train']:
-	print(data.size(), labels.size())
-	break
+# img_shape = (1, 430, 128)
+dataloaders = get_MNIST_dataloaders(args.batch_size)
+# dataloaders = get_EEG_dataloaders(args.batch_size)
+# print(len(dataloaders['train']))
+# for data, labels in dataloaders['train']:
+	# print(data.size(), labels.size())
+	# break
 
 # Initialize generator and discriminator
 generator = Generator(img_shape).to(device)

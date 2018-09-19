@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from . import device
 
 class Generator(nn.Module):
     def __init__(self, input_shape, latent_dim=100):

@@ -180,7 +180,7 @@ def get_VIM_dataloaders(batch_size=32):
             idx = i % self.data[0].size(0)
             subj = i >= self.data[0].size(0)
             if len(self.subjects) == 1:
-                subj = self.subjects
+                subj = self.subjects[0]
             # subj = 0
             out = torch.zeros(64*64*18)
             out.index_copy_(0, self.idxs[subj], self.data[subj][idx])

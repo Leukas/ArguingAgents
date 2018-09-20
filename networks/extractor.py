@@ -33,6 +33,9 @@ class FeatureExtractorFMRI(nn.Module):
         )
         self.fc = nn.Linear(64*16, 40)
 
+    def encode(self, x):
+        return self.encoder(x)
+
     def forward(self, x):
         x = self.encoder(x)
         # print(x.size())

@@ -1,11 +1,11 @@
 import numpy as np
 import torch
 import torch.nn as nn
-#from . import device
+from . import device
 
 class Generator(nn.Module):
     def __init__(self, input_shape, latent_dim=100):
-        super(Generator,self).__init__()
+        super().__init__()
         self.input_shape = input_shape
 
         def block(in_feat, out_feat, normalize=True):

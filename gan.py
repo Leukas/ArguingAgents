@@ -8,9 +8,7 @@ from networks import device
 from networks.generator import Generator
 from networks.discriminator import Discriminator
 
-#os.makedirs('images', exist_ok=True)
-if not os.path.exists(os.path.join('images')):
-    os.makedirs(os.path.join('images'))
+os.makedirs('images', exist_ok=True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n_epochs', type=int, default=10, help='number of epochs of training')

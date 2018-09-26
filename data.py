@@ -7,9 +7,11 @@ from torchvision import datasets
 
 # Configure data loader
 def MNIST_dataset(batch_size):
-	os.makedirs('../../data/mnist', exist_ok=True)
+	#os.makedirs('../../data/mnist', exist_ok=True)
+	if not os.path.exists(os.path.join('data/mnist')):
+		os.makedirs(os.path.join('data/mnist'))
 	dataloader = torch.utils.data.DataLoader(
-	    datasets.MNIST('../../data/mnist', 
+	    datasets.MNIST('data/mnist',
 	        train=True, 
 	        download=True,
 	        transform=transforms.Compose([

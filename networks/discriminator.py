@@ -6,7 +6,7 @@ from . import device
 
 class Discriminator(nn.Module):
     def __init__(self, input_shape):
-        super().__init__()
+        super(Discriminator, self).__init__()
 
         self.model = nn.Sequential(
             nn.Linear(int(np.prod(input_shape)), 512),

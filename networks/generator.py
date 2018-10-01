@@ -32,6 +32,7 @@ class ConditionalGenerator(nn.Module):
     def __init__(self, input_shape, num_classes, latent_dim=100):
         super().__init__()
         self.input_shape = input_shape
+        self.num_classes = num_classes
         self.label_emb = nn.Embedding(num_classes, num_classes)
 
         def block(in_feat, out_feat, normalize=True):
@@ -50,9 +51,9 @@ class ConditionalGenerator(nn.Module):
             nn.Tanh()
         )
 
-    def forward(self, noise, labels):
+    def forward(self, z, labels):
         # Concatenate label embedding and image to produce input
-        gen_input = torch.cat((self.label_emb(labels), noise), -1)
+        gen_input = torch.cat((self.label_emb(labels), z), -1)
         img = self.model(gen_input)
         img = img.view(img.size(0), *self.input_shape)
         return img

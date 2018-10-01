@@ -28,7 +28,7 @@ class Discriminator(nn.Module):
 class ConditionalDiscriminator(nn.Module):
     def __init__(self, input_shape, num_classes):
         super().__init__()
-
+        self.num_classes = num_classes
         self.label_embedding = nn.Embedding(num_classes, num_classes)
 
         self.model = nn.Sequential(

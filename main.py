@@ -1,12 +1,13 @@
 import argparse
 import os
 
-from training import train_gan
+from training import train_gan, train_cgan
 from data import get_MNIST_dataloaders, get_EEG_dataloaders
 
 from networks import device
-from networks.generator import Generator
-from networks.discriminator import Discriminator
+from networks.generator import *
+from networks.discriminator import *
+from networks.gan import GAN
 
 os.makedirs('images', exist_ok=True)
 
@@ -22,20 +23,19 @@ print(args)
 
 img_shape = (args.channels, args.img_size, args.img_size)
 # img_shape = (1, 430, 128)
-# dataloaders = get_MNIST_dataloaders(args.batch_size)
-dataloaders = get_EEG_dataloaders(args.batch_size)
-# print(len(dataloaders['train']))
-# for data, labels in dataloaders['train']:
-	# print(data.size(), labels.size())
-	# break
+dataloaders = get_MNIST_dataloaders(args.batch_size)
+# dataloaders = get_EEG_dataloaders(args.batch_size)
+
 
 # Initialize generator and discriminator
-generator = Generator(img_shape).to(device)
-discriminator = Discriminator(img_shape).to(device)
-gan = {}
-gan['g'] = generator
-gan['d'] = discriminator
+generator = ConditionalGenerator(img_shape, 10).to(device)
+discriminator = ConditionalDiscriminator(img_shape, 10).to(device)
+gan = GAN(generator, discriminator)
 
+# Load previous save
+model_path = './models/mnist/mnist.pt'
+if os.path.exists(model_path):
+	gan.load_state_dict(torch.load(model_path))
 
-train_gan(gan, dataloaders['train'], epochs=args.n_epochs)
+train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, save_path='./models/mnist/mnist.pt')
     

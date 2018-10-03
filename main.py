@@ -2,7 +2,7 @@ import argparse
 import os
 import torch
 
-from training import train_gan, train_cgan
+from training import train_gan, train_cgan, visualize_gan
 from data import get_MNIST_dataloaders, get_EEG_dataloaders
 
 from networks import device
@@ -38,10 +38,5 @@ model_path = './models/mnist/mnist.pt'
 if os.path.exists(model_path):
 	gan.load_state_dict(torch.load(model_path))
 
-# train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, save_path='./models/mnist/mnist.pt')
-sample = iter(dataloaders['test'])
-sample, label = next(sample)
-label = label.cuda()
-print(sample.size(), label.size())
-# print(next(sample))
-gan.d.visualize(sample, label)
+train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, save_path=model_path)
+# visualize_gan(gan, dataloaders['test'], visualize_fake=False)

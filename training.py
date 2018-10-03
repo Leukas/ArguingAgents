@@ -141,3 +141,23 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
 
                 save_image(gen_imgs.data[:25], 'images/%d.png' % batches_done, nrow=5, normalize=True)
                 save_image(gen_imgs.data[:25], 'images/%d.png' % batches_done, nrow=5, normalize=True)
+
+
+def visualize_gan(model, dataloader, visualize_fake=False):    
+    sample = iter(dataloader)
+    sample, label = next(sample)
+    label = label.to(device)
+    batch_size = sample.size(0)
+    if visualize_fake:
+        z = torch.FloatTensor(np.random.normal(0, 1, (sample.shape[0], model.g.latent_dim))).to(device)
+        gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
+
+        # Generate a batch of images
+        gen_imgs = model.generator(z, gen_labels)
+        model.d.visualize(gen_imgs, gen_labels)
+    else:
+
+        model.d.visualize(sample, label)
+
+    # print(sample.size(), label.size())
+    # print(next(sample))

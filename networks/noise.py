@@ -44,14 +44,15 @@ def add_black_box(img_tensor, box_size, stride=1, num_processes=None):
     return imgs.cuda(), ns.cuda()
 
 def mask_img(offsets, img, box_size):
-    img = copy.deepcopy(img)
+    img = copy.deepcopy(img.data)
     img[:, :, offsets[0]:offsets[0]+box_size[0], offsets[1]:offsets[1]+box_size[1]] = 0
     return img.squeeze(1)
 
 
 if __name__ == '__main__':
-    img_tensor = torch.arange(50).view((2,5,5))
+    img_tensor = torch.arange(50).view((2,1,5,5))
     box_size = (3,3)
-    img_tensor = torch.arange(64*64*32).view((32,64,64))
-    box_size = (16,16)
+    # img_tensor = torch.arange(64*64*32).view((32,64,64))
+    # box_size = (16,16)
     boxed_tensors = add_black_box(img_tensor, box_size, stride=1)
+    print(boxed_tensors)

@@ -2,7 +2,10 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+from torchvision.utils import save_image
 from . import device
+from .noise import add_black_box
+
 
 class Discriminator(nn.Module):
     def __init__(self, input_shape):
@@ -47,4 +50,18 @@ class ConditionalDiscriminator(nn.Module):
         # Concatenate label embedding and image to produce input
         d_in = torch.cat((img.view(img.size(0), -1), self.label_embedding(labels)), -1)
         validity = self.model(d_in)
+        return validity
+
+
+    def visualize(self, img, labels):
+        boxed_imgs, dims = add_black_box(img, (10,10), stride=1)
+        boxed_imgs = boxed_imgs.unsqueeze(1)
+        boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
+        labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()
+
+        d_in = torch.cat((boxed_imgs, self.label_embedding(labels)), -1)
+        validity = self.model(d_in)
+        validity = validity.view(-1, 1, dims[0], dims[1])
+        save_image(validity, './images/vis/sample.png')
+        save_image(img, './images/vis/imgs.png')
         return validity

@@ -14,7 +14,7 @@ os.makedirs('images', exist_ok=True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n_epochs', type=int, default=10, help='number of epochs of training')
-parser.add_argument('--batch_size', type=int, default=32, help='size of the batches')
+parser.add_argument('--batch_size', type=int, default=8, help='size of the batches')
 parser.add_argument('--lr', type=float, default=0.0002, help='adam: learning rate')
 parser.add_argument('--img_size', type=int, default=28, help='size of each image dimension')
 parser.add_argument('--channels', type=int, default=1, help='number of image channels')
@@ -34,9 +34,9 @@ discriminator = ConditionalDiscriminator(img_shape, 10).to(device)
 gan = GAN(generator, discriminator)
 
 # Load previous save
-model_path = './models/mnist/mnist.pt'
+model_path = './models/mnist/mnist4.pt'
 if os.path.exists(model_path):
 	gan.load_state_dict(torch.load(model_path))
 
-train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, save_path=model_path)
-# visualize_gan(gan, dataloaders['test'], visualize_fake=False)
+# train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, save_path=model_path)
+visualize_gan(gan, dataloaders['test'], visualize_fake=True)

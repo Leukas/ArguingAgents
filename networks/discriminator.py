@@ -57,7 +57,7 @@ class ConditionalDiscriminator(nn.Module):
             nn.Conv2d(64, 128, 3, stride=2, padding=1),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(128, 128, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),  
+            nn.LeakyReLU(0.1, inplace=True),
             nn.Dropout(0.25),
         )
         self.fc = nn.Linear(128+num_classes, 1)
@@ -75,7 +75,7 @@ class ConditionalDiscriminator(nn.Module):
 
 
     def visualize(self, img, labels):
-        boxed_imgs, dims = add_black_box(img, (8,8), stride=1)
+        boxed_imgs, dims = add_black_box(img, (2,2), stride=1)
         boxed_imgs = boxed_imgs.unsqueeze(1)
         # boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
         labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()

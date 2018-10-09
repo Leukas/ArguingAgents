@@ -2,6 +2,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision.utils import save_image
 from . import device
 from .noise import add_black_box
@@ -37,16 +38,22 @@ class Classifier(nn.Module):
 
         return x
 
-    def visualize(self, img):
-        boxed_imgs, dims = add_black_box(img, (2,2), stride=1)
+    def visualize(self, img, labels):
+        boxed_imgs, dims = add_black_box(img, (16,16), stride=1)
         boxed_imgs = boxed_imgs.unsqueeze(1)
         # boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
         # labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()
 
         # d_in = torch.cat((boxed_imgs, self.label_embedding(labels)), -1)
-        validity = self(boxed_imgs)
-        validity = validity.view(-1, 1, dims[0], dims[1])
-        save_image(validity, './images/vis/sample.png')
-        save_image(img, './images/vis/imgs.png')
-        return validity
+        classes = self(boxed_imgs)
+        classes = F.softmax(classes, dim=1)
 
+        print(classes.size(), labels.size())
+        labels = labels.unsqueeze(1).expand(labels.size(0),int(dims[0]*dims[1])).contiguous().view(-1)
+        print(classes.size(), labels.size())
+        classes = torch.gather(classes, 1, labels.unsqueeze(1)) # class prob for label
+        classes = classes.view(-1, 1, dims[0], dims[1])
+        # classes = torch.max(classes, dim=1)[1]
+        save_image(classes, './images/vis/c_sample.png')
+        save_image(img, './images/vis/c_imgs.png')
+        return classes

@@ -1,7 +1,7 @@
 # training.py
 import numpy as np 
 import torch
-import torch.nn
+import torch.nn as nn
 from networks import device
 from torchvision.utils import save_image
 
@@ -12,12 +12,14 @@ def train_gan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterion
         img_shape = (1,28,28)
 
     if criterion is None:
-        criterion = torch.nn.BCELoss().to(device)
+        disc_loss = nn.BCELoss().to(device)
+        class_coss = nn.CrossEntropyLoss().to(device)
 
     if optimizers is None:
         optimizers = {}
         optimizers['g'] = torch.optim.Adam(model.generator.parameters(), lr=lr, betas=(0.5, 0.999))
         optimizers['d'] = torch.optim.Adam(model.discriminator.parameters(), lr=lr, betas=(0.5, 0.999))
+        optimizers['c'] = torch.optim.Adam(model.classifier.parameters(), lr=lr, betas=(0.5, 0.999))
 
 
     for epoch in range(epochs):
@@ -43,7 +45,7 @@ def train_gan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterion
             gen_imgs = model.generator(z)
 
             # Loss measures generator's ability to fool the discriminator
-            g_loss = criterion(model.discriminator(gen_imgs), valid)
+            g_loss = disc_loss(model.discriminator(gen_imgs), valid)
 
             g_loss.backward()
             optimizers['g'].step()
@@ -55,12 +57,14 @@ def train_gan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterion
             optimizers['d'].zero_grad()
 
             # Measure discriminator's ability to classify real from generated samples
-            real_loss = criterion(model.discriminator(real_imgs), valid)
-            fake_loss = criterion(model.discriminator(gen_imgs.detach()), fake)
+            real_loss = disc_loss(model.discriminator(real_imgs), valid)
+            fake_loss = disc_loss(model.discriminator(gen_imgs.detach()), fake)
             d_loss = (real_loss + fake_loss) / 2
 
             d_loss.backward()
             optimizers['d'].step()
+
+
 
             if i % 100 == 0:
                 print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, epochs, i, len(dataloader),
@@ -78,12 +82,14 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
         img_shape = (1,28,28)
 
     if criterion is None:
-        criterion = torch.nn.MSELoss().to(device)
+        disc_loss = nn.MSELoss().to(device)
+        class_loss = nn.CrossEntropyLoss().to(device)
 
     if optimizers is None:
         optimizers = {}
         optimizers['g'] = torch.optim.Adam(model.generator.parameters(), lr=lr, betas=(0.5, 0.999))
         optimizers['d'] = torch.optim.Adam(model.discriminator.parameters(), lr=lr, betas=(0.5, 0.999))
+        optimizers['c'] = torch.optim.Adam(model.classifier.parameters(), lr=lr, betas=(0.5, 0.999))
 
 
     for epoch in range(epochs):
@@ -111,7 +117,12 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
 
             # Loss measures generator's ability to fool the discriminator
             validity = model.discriminator(gen_imgs, gen_labels)
-            g_loss = criterion(validity, valid)
+            g_loss = disc_loss(validity, valid)
+
+            classibility = model.classifier(gen_imgs)
+            gc_loss = class_loss(classibility, gen_labels)
+
+            g_loss += gc_loss
 
             g_loss.backward()
             optimizers['g'].step()
@@ -123,16 +134,33 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             optimizers['d'].zero_grad()
 
             # Measure discriminator's ability to classify real from generated samples
-            real_loss = criterion(model.discriminator(real_imgs, labels), valid)
-            fake_loss = criterion(model.discriminator(gen_imgs.detach(), gen_labels), fake)
+            real_loss = disc_loss(model.discriminator(real_imgs, labels), valid)
+            fake_loss = disc_loss(model.discriminator(gen_imgs.detach(), gen_labels), fake)
             d_loss = (real_loss + fake_loss) / 2
 
             d_loss.backward()
             optimizers['d'].step()
 
+
+            # ---------------------
+            #  Train Classifier
+            # ---------------------
+            optimizers['c'].zero_grad()
+
+            # Measure discriminator's ability to classify real from generated samples
+            real_loss = class_loss(model.classifier(real_imgs), labels)
+            fake_loss = class_loss(model.classifier(gen_imgs.detach()), gen_labels)
+            c_loss = (real_loss + fake_loss) / 2
+
+            c_loss.backward()
+            optimizers['c'].step()
+
+
+
+
             if i % 100 == 0:
-                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, epochs, i, len(dataloader),
-                                                                d_loss.item(), g_loss.item()))
+                print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f] [C loss: %f]" % (epoch, epochs, i, len(dataloader),
+                                                                d_loss.item(), g_loss.item(), c_loss.item()))
 
             batches_done = epoch * len(dataloader) + i
             if batches_done % sample_interval == 0:
@@ -154,10 +182,10 @@ def visualize_gan(model, dataloader, visualize_fake=False):
 
         # Generate a batch of images
         gen_imgs = model.generator(z, gen_labels)
-        model.d.visualize(gen_imgs, gen_labels)
+        model.c.visualize(gen_imgs, gen_labels)
     else:
 
-        model.d.visualize(sample, label)
+        model.c.visualize(sample, label)
 
     # print(sample.size(), label.size())
     # print(next(sample))

@@ -5,6 +5,29 @@ import numpy as np
 import functools
 import copy
 # import torch.multiprocessing as mp
+def add_black_box_random(img_tensor, box_size):
+    """
+    Add black boxes to a batch in random places.
+    Non-square boxes are a WIP
+    """
+    # img_tensor = copy.deepcopy(img_tensor)
+    batch_size = img_tensor.size(0)
+    img_dims = torch.Tensor(list(img_tensor.size()[2:]))
+    ns = torch.ceil(img_dims - (torch.Tensor(box_size) - 1))
+    rand_xs = torch.randint(int(ns[0]), (batch_size, 1))
+    rand_ys = torch.randint(int(ns[1]), (batch_size, 1))
+
+    inds = torch.Tensor([[x]*box_size[0] for x in range(box_size[0])])
+    xs = torch.flatten(inds).unsqueeze(0).repeat(batch_size, 1) + rand_xs
+    ys = torch.flatten(inds.t()).unsqueeze(0).repeat(batch_size, 1) + rand_ys
+    bs = torch.Tensor([[x]*int(box_size[0] * box_size[1]) for x in range(batch_size)])
+    mask = torch.ones(img_tensor.size()).float()
+    mask[bs.long(), :, xs.long(), ys.long()] = 0 
+
+    img_tensor = img_tensor * mask.cuda()
+    # img_tensor
+    return img_tensor
+    # print(img_tensor)
 
 def add_black_box(img_tensor, box_size, stride=1, num_processes=None):
     """
@@ -52,7 +75,9 @@ def mask_img(offsets, img, box_size):
 if __name__ == '__main__':
     img_tensor = torch.arange(50).view((2,1,5,5))
     box_size = (3,3)
-    # img_tensor = torch.arange(64*64*32).view((32,64,64))
+    # img_tensor = torch.arange(64*64*32).view((32,1,64,64))
     # box_size = (16,16)
-    boxed_tensors = add_black_box(img_tensor, box_size, stride=1)
-    print(boxed_tensors)
+    # boxed_tensors = add_black_box(img_tensor, box_size, stride=1)
+    boxed_tensor = add_black_box_random(img_tensor, box_size)
+    print(boxed_tensor)
+    # print(boxed_tensors)

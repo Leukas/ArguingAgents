@@ -29,9 +29,8 @@ class Generator(nn.Module):
         return img
 
 class ConditionalGenerator(nn.Module):
-    def __init__(self, input_shape, num_classes, latent_dim=100):
+    def __init__(self, num_channels, num_classes, latent_dim=100):
         super().__init__()
-        self.input_shape = input_shape
         self.num_classes = num_classes
         self.latent_dim = latent_dim
         self.label_emb = nn.Embedding(num_classes, num_classes)
@@ -43,15 +42,6 @@ class ConditionalGenerator(nn.Module):
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
-        self.model = nn.Sequential(
-            *block(latent_dim+num_classes, 128, normalize=False),
-            *block(128, 256),
-            *block(256, 512),
-            *block(512, 1024),
-            nn.Linear(1024, int(np.prod(input_shape))),
-            nn.Tanh()
-        )
-
         self.fc = nn.Linear(latent_dim + num_classes, 128 * 8 * 8)
 
 
@@ -59,33 +49,17 @@ class ConditionalGenerator(nn.Module):
             nn.BatchNorm2d(128),
             nn.Upsample(scale_factor=2),
             nn.Conv2d(128, 128, 3, stride=1, padding=1),
+            nn.Conv2d(128, 128, 3, stride=1, padding=1),
             nn.BatchNorm2d(128, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Upsample(scale_factor=2),
             nn.Conv2d(128, 64, 3, stride=1, padding=1),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
             nn.BatchNorm2d(64, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 1, 3, stride=1, padding=1),
+            nn.Conv2d(64, num_channels, 3, stride=1, padding=1),
             nn.Tanh()
 
-            # nn.Conv2d()
-            # nn.ConvTranspose2d(latent_dim + num_classes, 64, 3, stride=2, padding=1, output_padding=1),
-            # nn.BatchNorm2d(128),
-
-            # nn.LeakyReLU(0.2, inplace=True),
-            # nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
-            # nn.BatchNorm2d(32),
-            # nn.LeakyReLU(0.2, inplace=True),
-            # nn.ConvTranspose2d(32, 16, 3, stride=2, padding=1),
-            # nn.BatchNorm2d(16),
-            # nn.LeakyReLU(0.2, inplace=True),
-            # nn.ConvTranspose2d(16, 8, 3, stride=2, padding=1, output_padding=1),
-            # nn.BatchNorm2d(8),
-            # nn.LeakyReLU(0.2, inplace=True),
-            # nn.ConvTranspose2d(8, 1, 3, stride=2, padding=1, output_padding=1),
-            # nn.LeakyReLU(0.2, inplace=True),
-            # nn.Tanh(),
-            # nn.ConvTranspose2d(latent_dim + num_classes, 64, 3),
         )
 
     def forward(self, z, labels):

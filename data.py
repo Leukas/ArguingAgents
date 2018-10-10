@@ -32,6 +32,32 @@ def get_MNIST_dataloaders(batch_size):
 
     return dataloaders
 
+def get_CIFAR10_dataloaders(batch_size):
+    os.makedirs('../../data/cifar10', exist_ok=True)
+    dataloaders = {}
+    dataloaders['train'] = torch.utils.data.DataLoader(
+        datasets.CIFAR10('../../data/cifar10', 
+            train=True, 
+            download=True,
+            transform=transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])),
+        batch_size=batch_size, shuffle=True)
+
+    dataloaders['test'] = torch.utils.data.DataLoader(
+        datasets.CIFAR10('../../data/cifar10', 
+            train=False, 
+            download=True,
+            transform=transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])),
+        batch_size=batch_size)
+
+    return dataloaders
+
+
 
 # Dataset class
 class EEGDataset:

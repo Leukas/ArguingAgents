@@ -9,19 +9,22 @@ from .noise import add_black_box
 
 
 class Classifier(nn.Module):
-    def __init__(self, input_shape, num_classes):
+    def __init__(self, num_channels, num_classes):
         super().__init__()
 
         self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 32, 3, stride=2, padding=1),
+            nn.Conv2d(num_channels, 32, 3, stride=2, padding=1),
             nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(32, 32, 3, padding=1),
             nn.Conv2d(32, 32, 3, stride=2, padding=1),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(32, 64, 3, stride=2, padding=1),
+            nn.Conv2d(64, 64, 3, padding=1),
             nn.Dropout(0.25),
             # nn.Conv2d(64, 64, 3, stride=2, padding=1),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(64, 128, 3, stride=2, padding=1),
+            nn.Conv2d(128, 128, 3, padding=1),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(128, 128, 3, stride=2, padding=1),
             nn.LeakyReLU(0.1, inplace=True),
@@ -37,6 +40,30 @@ class Classifier(nn.Module):
         x = self.fc(x)
 
         return x
+
+    def vis_layer(self, img, layer=5, feature_num=2):
+        x = self.conv[0:layer+1](img)
+        print(x.size())
+        stride = self.conv[layer].stride
+        weight = torch.zeros(self.conv[layer].weight.size()).to(device)
+        weight[feature_num] = self.conv[layer].weight[feature_num]
+        x = F.conv_transpose2d(x, weight, stride=stride, padding=1)
+        # print(x.size())
+        for i in range(2, layer+1):
+            print(x.size())
+            if (layer - i) in [7, 14] :
+                continue 
+            elif (layer - i) in [1, 4, 8, 11, 13] :
+                x = F.leaky_relu(x, 0.1, inplace=True)
+            else:
+                stride = self.conv[layer].stride 
+                x = F.conv_transpose2d(x, self.conv[layer-i].weight, stride=stride, padding=1)
+        # print(weight.size())
+
+        print(x.size())
+
+
+        save_image(x, './images/vis/x_sample.png')
 
     def visualize(self, img, labels):
         boxed_imgs, dims = add_black_box(img, (16,16), stride=1)

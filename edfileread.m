@@ -18,5 +18,6 @@ for i = 1:length(files)
   [hdr, record] = edfread(strcat("data/",files(i).name),'targetSignals',[3:16]);
   mkdir matdata
   save(strcat('matdata/',id,'.mat'),'hdr','record');
+  cd ..
   
 endfor

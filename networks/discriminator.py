@@ -6,28 +6,6 @@ from torchvision.utils import save_image
 from . import device
 from .noise import add_black_box
 
-
-class Discriminator(nn.Module):
-    def __init__(self, input_shape):
-        super().__init__()
-
-        self.model = nn.Sequential(
-            nn.Linear(int(np.prod(input_shape)), 512),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 256),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(256, 1),
-            nn.Sigmoid()
-        )
-
-    def forward(self, img):
-        img_flat = img.view(img.size(0), -1)
-        validity = self.model(img_flat)
-
-        return validity
-
-
-
 class ConditionalDiscriminator(nn.Module):
     def __init__(self, num_channels, num_classes):
         super().__init__()

@@ -46,7 +46,8 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             # Generate a batch of images
             gen_imgs = model.generator(z, gen_labels)
             box_size = (10, 10)
-            gen_imgs = add_black_box_random(gen_imgs, box_size)
+            # gen_imgs = add_black_box_random(gen_imgs, box_size)
+            # gen_imgs = add_black_box_random(gen_imgs, box_size)
             # Measures generator's ability to fool the discriminator
             validity = model.discriminator(gen_imgs, gen_labels)
             g_loss = disc_loss(validity, valid)
@@ -65,7 +66,8 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             # ---------------------
             optimizers['d'].zero_grad()
             # Measure discriminator's ability to classify real from generated samples
-            real_loss = disc_loss(model.discriminator(add_black_box_random(real_imgs, box_size), labels), valid)
+            real_loss = disc_loss(model.discriminator(real_imgs, labels), valid)
+            # real_loss = disc_loss(model.discriminator(add_black_box_random(real_imgs, box_size), labels), valid)
             fake_loss = disc_loss(model.discriminator(gen_imgs.detach(), gen_labels), fake)
             d_loss = (real_loss + fake_loss) / 2
 
@@ -104,30 +106,30 @@ def sample_gan(model, latent_dim, batches_done):
     gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),4)).to(device)
     gen_imgs = model.generator(z, gen_labels)
 
-    save_image(gen_imgs.data[:40], 'images/s%d.png' % batches_done, nrow=10, normalize=True)
+    save_image(gen_imgs.data[:40], 'images/video/s%d.png' % batches_done, nrow=10, normalize=True)
 
 
-def visualize_gan(model, dataloader, visualize_fake=False, c=True):    
+def visualize_gan(model, dataloader, visualize_fake=False):    
     sample = iter(dataloader)
     sample, label = next(sample)
+    sample = sample.to(device)
     label = label.to(device)
     batch_size = sample.size(0)
     if visualize_fake:
-        z = torch.FloatTensor(np.random.normal(0, 1, (sample.shape[0], model.g.latent_dim))).to(device)
-        gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
+        # z = torch.FloatTensor(np.random.normal(0, 1, (sample.shape[0], model.g.latent_dim))).to(device)
+        z = torch.FloatTensor(np.random.normal(0, 1, (model.g.num_classes*2, model.g.latent_dim))).to(device)
+        gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),2)).to(device)
+    
+        # gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
 
         # Generate a batch of images
         gen_imgs = model.generator(z, gen_labels)
-        if c:
-            model.c.visualize(gen_imgs, gen_labels)
-        else:
-            model.d.visualize(gen_imgs)
+        model.c.visualize(gen_imgs, gen_labels)
+        model.d.visualize(gen_imgs)
         model.c.vis_layer(gen_imgs)
     else:
-        if c:
-            model.c.visualize(sample, label)
-        else:
-            model.d.visualize(sample)
+        model.c.visualize(sample, label)
+        model.d.visualize(sample)
         model.c.vis_layer(sample)
 
     # print(sample.size(), label.size())

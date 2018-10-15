@@ -1,7 +1,7 @@
 % needs data/xx.edf 
 % needs edfread.m 
 
-% makes /matdata/xx.mat files with headers "hdr" and data "record" of relevant channels
+% makes /matdata/xx.mat files with the data "record" of relevant channels, the digit the subject were thinking of "label", and subject id "subj"
 % saves it in unknown version, but could be specified
 
 % "record" has the dimensions of [channel x samples]
@@ -11,12 +11,20 @@
 files = dir('data');
 files = files(3:length(files)); 
 
+label = 0;
+subj = 0;
+
 for i = 1:length(files)
 
   [nothing,id,extension] = fileparts(files(i).name);
 
   [hdr, record] = edfread(strcat("data/",files(i).name),'targetSignals',[3:16]);
+  
+  label = id(length(id));
+  subj = hdr.subjectID;
+  
   mkdir matdata
-  save(strcat('matdata/',id,'.mat'),'hdr','record');
+  save(strcat('matdata/',id,'.mat'),'record', label, subj);
+  cd ..
   
 endfor

@@ -46,7 +46,7 @@ def add_black_box(img_tensor, box_size, stride=1, num_processes=None):
     pars = list(itertools.product(*inds))
     masking_fn = functools.partial(mask_img, img=img_tensor, box_size=box_size)
 
-    imgs = torch.zeros([n_total*batch_size] +  list(img_tensor.size()[2:]))
+    imgs = torch.zeros([n_total*batch_size] +  list(img_tensor.size()[1:]))
 
     # multiprocess to save precious time
     # if num_processes is None:
@@ -58,9 +58,9 @@ def add_black_box(img_tensor, box_size, stride=1, num_processes=None):
         imgs[i*batch_size:(i+1)*batch_size] = arr
     
     # reorganize 
-    imgs = imgs.view(n_total, batch_size, imgs.size(1), imgs.size(1))
-    imgs = imgs.permute(1,0,2,3).contiguous()
-    imgs = imgs.view(batch_size*n_total, imgs.size(2), imgs.size(3))
+    imgs = imgs.view(n_total, batch_size, imgs.size(1), imgs.size(2), imgs.size(3))
+    imgs = imgs.permute(1,0,2,3,4).contiguous()
+    imgs = imgs.view(batch_size*n_total, imgs.size(2), imgs.size(3), imgs.size(4))
     # print(imgs)
     # pool.close()
     # pool.join()
@@ -69,7 +69,7 @@ def add_black_box(img_tensor, box_size, stride=1, num_processes=None):
 def mask_img(offsets, img, box_size):
     img = copy.deepcopy(img.data)
     img[:, :, offsets[0]:offsets[0]+box_size[0], offsets[1]:offsets[1]+box_size[1]] = 0
-    return img.squeeze(1)
+    return img#.squeeze(1)
 
 
 if __name__ == '__main__':

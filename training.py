@@ -64,6 +64,8 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             # ---------------------
             #  Train Discriminator
             # ---------------------
+            # if epoch < 2:
+
             optimizers['d'].zero_grad()
             # Measure discriminator's ability to classify real from generated samples
             real_loss = disc_loss(model.discriminator(real_imgs, labels), valid)
@@ -73,8 +75,8 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
 
 
 
-            d_loss.backward()
-            optimizers['d'].step()
+                d_loss.backward()
+                optimizers['d'].step()
 
             # ---------------------
             #  Train Classifier

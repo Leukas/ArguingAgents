@@ -74,7 +74,7 @@ class Classifier(nn.Module):
 
     def visualize(self, img, labels):
         boxed_imgs, dims = add_black_box(img, (16,16), stride=1)
-        boxed_imgs = boxed_imgs.unsqueeze(1)
+        # boxed_imgs = boxed_imgs.unsqueeze(1)
         # boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
         # labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()
 

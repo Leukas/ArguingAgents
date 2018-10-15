@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.utils import save_image
 from . import device
-from .noise import add_black_box
+from .noise import black_box_module, add_black_boxes
 
 
 class Classifier(nn.Module):
@@ -74,6 +74,9 @@ class Classifier(nn.Module):
 
     def visualize(self, img, labels):
         boxed_imgs, dims = add_black_box(img, (16,16), stride=1)
+        boxed_imgs, dims = add_black_boxes(img, (10,10), stride=1)
+        # boxed_imgs = boxed_imgs.unsqueeze(1)
+        # boxed_imgs, dims = black_box_module(img, (16,16), stride=1)
         # boxed_imgs = boxed_imgs.unsqueeze(1)
         # boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
         # labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()

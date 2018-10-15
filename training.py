@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from networks import device
-from networks.noise import add_black_box_random
+from networks.noise import add_black_box_random, black_box_module
 from torchvision.utils import save_image
 
 def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterion=None, 
@@ -33,48 +33,67 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             # Configure input
             real_imgs = imgs.float().to(device)
             labels = labels.long().to(device)
-            # -----------------
-            #  Train Generator
-            # -----------------
 
-            optimizers['g'].zero_grad()
+            if i % 5 == 0:
+                # -----------------
+                #  Train Generator
+                # -----------------
 
-            # Sample noise as generator input
-            z = torch.FloatTensor(np.random.normal(0, 1, (batch_size, latent_dim))).to(device)
-            gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
+                optimizers['g'].zero_grad()
 
-            # Generate a batch of images
-            gen_imgs = model.generator(z, gen_labels)
-            box_size = (10, 10)
-            # gen_imgs = add_black_box_random(gen_imgs, box_size)
-            # gen_imgs = add_black_box_random(gen_imgs, box_size)
-            # Measures generator's ability to fool the discriminator
-            validity = model.discriminator(gen_imgs, gen_labels)
-            g_loss = disc_loss(validity, valid)
+                # Sample noise as generator input
+                z = torch.FloatTensor(np.random.normal(0, 1, (batch_size, latent_dim))).to(device)
+                gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
 
-            # Measures generator's ability to create classifiable images
-            classibility = model.classifier(gen_imgs)
-            gc_loss = class_loss(classibility, gen_labels)
+                # Generate a batch of images
+                gen_imgs = model.generator(z, gen_labels)
+                box_size = (10, 10)
+                boxed_gen_imgs = add_black_box_random(gen_imgs, box_size)
+                # gen_imgs = add_black_box_random(gen_imgs, box_size)
 
-            g_loss += gc_loss
+                # Measures generator's ability to fool the discriminator
+                validity = model.discriminator(gen_imgs, gen_labels)
+                g_loss = disc_loss(validity, valid)
 
-            g_loss.backward()
-            optimizers['g'].step()
+                # Measure black-box sliding performance of discriminator
+                box_slid_imgs, ns = black_box_module(gen_imgs, box_size, stride=4)
+                valid_map = model.discriminator(box_slid_imgs)
+                # print(valid_map.size())
+                vmap_loss = disc_loss(valid_map, torch.ones((1,1)).expand_as(valid_map).type_as(valid_map))
+                vmap_loss /= torch.prod(ns).to(device)
+                # vmap_loss = (valid_map**2).mean(sum()
+                # vmap_loss.backward()
+                
+
+                # Measures generator's ability to create classifiable images
+                classibility = model.classifier(gen_imgs)
+                gc_loss = class_loss(classibility, gen_labels)
+
+                g_loss += gc_loss
+                # g_loss = gc_loss
+                g_loss += vmap_loss
+
+                g_loss.backward()
+                optimizers['g'].step()
 
             # ---------------------
             #  Train Discriminator
             # ---------------------
             optimizers['d'].zero_grad()
             # Measure discriminator's ability to classify real from generated samples
-            real_loss = disc_loss(model.discriminator(real_imgs, labels), valid)
-            # real_loss = disc_loss(model.discriminator(add_black_box_random(real_imgs, box_size), labels), valid)
-            fake_loss = disc_loss(model.discriminator(gen_imgs.detach(), gen_labels), fake)
+            # real_loss = disc_loss(model.discriminator(real_imgs, labels), valid)
+            real_loss = disc_loss(model.discriminator(add_black_box_random(real_imgs, box_size), labels), valid)
+            fake_loss = disc_loss(model.discriminator(boxed_gen_imgs.detach(), gen_labels), fake)
             d_loss = (real_loss + fake_loss) / 2
 
 
 
             d_loss.backward()
             optimizers['d'].step()
+
+            for p in model.discriminator.parameters():
+                p.data.clamp_(-0.01, 0.01)  
+
 
             # ---------------------
             #  Train Classifier
@@ -106,7 +125,7 @@ def sample_gan(model, latent_dim, batches_done):
     gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),4)).to(device)
     gen_imgs = model.generator(z, gen_labels)
 
-    save_image(gen_imgs.data[:40], 'images/video/s%d.png' % batches_done, nrow=10, normalize=True)
+    save_image(gen_imgs.data[:40], 'images/u%d.png' % batches_done, nrow=10, normalize=True)
 
 
 def visualize_gan(model, dataloader, visualize_fake=False):    

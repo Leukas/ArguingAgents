@@ -46,7 +46,7 @@ gan = GAN(generator, discriminator, classifier).to(device)
 # model_path = './models/cifar10/test300.pt'
 # model_path = './models/mnist/testin9.pt'
 # model_path = './models/mnist/test_video2.pt'
-model_path = './models/mnist/testing2.pt'
+model_path = './models/mnist/testing3.pt'
 
 
 if os.path.exists(model_path):

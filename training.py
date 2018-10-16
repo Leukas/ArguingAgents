@@ -34,51 +34,53 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             real_imgs = imgs.float().to(device)
             labels = labels.long().to(device)
 
-            if i % 5 == 0:
+            # if i % 5 == 0:
                 # -----------------
                 #  Train Generator
                 # -----------------
 
-                optimizers['g'].zero_grad()
+            optimizers['g'].zero_grad()
 
-                # Sample noise as generator input
-                z = torch.FloatTensor(np.random.normal(0, 1, (batch_size, latent_dim))).to(device)
-                gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
+            # Sample noise as generator input
+            z = torch.FloatTensor(np.random.normal(0, 1, (batch_size, latent_dim))).to(device)
+            gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
 
-                # Generate a batch of images
-                gen_imgs = model.generator(z, gen_labels)
-                box_size = (10, 10)
-                boxed_gen_imgs = add_black_box_random(gen_imgs, box_size)
-                # gen_imgs = add_black_box_random(gen_imgs, box_size)
+            # Generate a batch of images
+            gen_imgs = model.generator(z, gen_labels)
+            box_size = (10, 10)
+            boxed_gen_imgs = add_black_box_random(gen_imgs, box_size)
+            # gen_imgs = add_black_box_random(gen_imgs, box_size)
 
-                # Measures generator's ability to fool the discriminator
-                validity = model.discriminator(gen_imgs, gen_labels)
-                g_loss = disc_loss(validity, valid)
+            # Measures generator's ability to fool the discriminator
+            validity = model.discriminator(boxed_gen_imgs, gen_labels)
+            g_loss = disc_loss(validity, valid)
 
-                # Measure black-box sliding performance of discriminator
-                box_slid_imgs, ns = black_box_module(gen_imgs, box_size, stride=4)
-                valid_map = model.discriminator(box_slid_imgs)
-                # print(valid_map.size())
-                vmap_loss = disc_loss(valid_map, torch.ones((1,1)).expand_as(valid_map).type_as(valid_map))
-                vmap_loss /= torch.prod(ns).to(device)
-                # vmap_loss = (valid_map**2).mean(sum()
-                # vmap_loss.backward()
-                
+            # Measure black-box sliding performance of discriminator
+            # box_slid_imgs, ns = black_box_module(gen_imgs, box_size, stride=4)
+            # valid_map = model.discriminator(box_slid_imgs)
+            # # print(valid_map.size())
+            # vmap_loss = disc_loss(valid_map, torch.ones((1,1)).expand_as(valid_map).type_as(valid_map))
+            # vmap_loss /= torch.prod(ns).to(device)
+            # vmap_loss = (valid_map**2).mean(sum()
+            # g_loss += vmap_loss
 
-                # Measures generator's ability to create classifiable images
-                classibility = model.classifier(gen_imgs)
-                gc_loss = class_loss(classibility, gen_labels)
+            
 
-                g_loss += gc_loss
-                # g_loss = gc_loss
-                g_loss += vmap_loss
+            # Measures generator's ability to create classifiable images
+            classibility = model.classifier(gen_imgs)
+            gc_loss = class_loss(classibility, gen_labels)
 
-                g_loss.backward()
-                optimizers['g'].step()
+            g_loss += gc_loss
+            # g_loss = gc_loss
+
+            g_loss.backward()
+            optimizers['g'].step()
 
             # ---------------------
             #  Train Discriminator
             # ---------------------
+            # if epoch < 2:
+
             optimizers['d'].zero_grad()
             # Measure discriminator's ability to classify real from generated samples
             # real_loss = disc_loss(model.discriminator(real_imgs, labels), valid)
@@ -91,8 +93,8 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
             d_loss.backward()
             optimizers['d'].step()
 
-            for p in model.discriminator.parameters():
-                p.data.clamp_(-0.01, 0.01)  
+            # for p in model.discriminator.parameters():
+            #     p.data.clamp_(-0.01, 0.01)  
 
 
             # ---------------------
@@ -143,12 +145,12 @@ def visualize_gan(model, dataloader, visualize_fake=False):
 
         # Generate a batch of images
         gen_imgs = model.generator(z, gen_labels)
-        model.c.visualize(gen_imgs, gen_labels)
-        model.d.visualize(gen_imgs)
+        # model.c.visualize(gen_imgs, gen_labels)
+        # model.d.visualize(gen_imgs)
         model.c.vis_layer(gen_imgs)
     else:
-        model.c.visualize(sample, label)
-        model.d.visualize(sample)
+        # model.c.visualize(sample, label)
+        # model.d.visualize(sample)
         model.c.vis_layer(sample)
 
     # print(sample.size(), label.size())

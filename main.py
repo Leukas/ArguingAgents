@@ -41,14 +41,17 @@ classifier = Classifier(channels, 10).to(device)
 gan = GAN(generator, discriminator, classifier).to(device)
 
 # Load previous save
+
 # model_path = .
 # model_path = './models/cifar10/test300.pt'
-model_path = './models/mnist/testin9.pt'
+# model_path = './models/mnist/testin9.pt'
 # model_path = './models/mnist/test_video2.pt'
+model_path = './models/mnist/testing2.pt'
+
+
 if os.path.exists(model_path):
     gan.load_state_dict(torch.load(model_path))
 
 # print(torch.cuda.is_available())
-
-train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=100, latent_dim=args.latent_dim, save_path=model_path)
-# visualize_gan(gan.eval(), dataloaders['test'], visualize_fake=True)
+# train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, latent_dim=args.latent_dim, save_path=model_path)
+visualize_gan(gan.eval(), dataloaders['test'], visualize_fake=False)

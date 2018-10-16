@@ -17,3 +17,4 @@
 
 % bzip2 -d /media/zalty/403F-6532/colorferet/colorferet/dvd2/data/montages/misc/no_beard_M_Other.ppm.bz2
 
+cd /media/zalty/403F-6532/colorferet/colorferet/dvd2/data/thumbnails/00751

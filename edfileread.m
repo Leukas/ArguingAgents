@@ -24,7 +24,11 @@ for i = 1:length(files)
   subj = hdr.subjectID;
   
   mkdir matdata
+<<<<<<< HEAD
   save(strcat('matdata/',id,'.mat'),'record', label, subj);
+=======
+  save(strcat('matdata/',id,'.mat'),'hdr','record');
+>>>>>>> 6416b079f2d609cb85c5ed18903ab48ff7ca5e6b
   cd ..
   
 endfor

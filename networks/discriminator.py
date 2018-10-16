@@ -4,29 +4,7 @@ import torch
 import torch.nn as nn
 from torchvision.utils import save_image
 from . import device
-from .noise import add_black_box
-
-
-class Discriminator(nn.Module):
-    def __init__(self, input_shape):
-        super().__init__()
-
-        self.model = nn.Sequential(
-            nn.Linear(int(np.prod(input_shape)), 512),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 256),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(256, 1),
-            nn.Sigmoid()
-        )
-
-    def forward(self, img):
-        img_flat = img.view(img.size(0), -1)
-        validity = self.model(img_flat)
-
-        return validity
-
-
+from .noise import black_box_module
 
 class ConditionalDiscriminator(nn.Module):
     def __init__(self, num_channels, num_classes):
@@ -67,7 +45,7 @@ class ConditionalDiscriminator(nn.Module):
 
 
     def visualize(self, img):
-        boxed_imgs, dims = add_black_box(img, (10, 10), stride=1)
+        boxed_imgs, dims = black_box_module(img, (10, 10), stride=1)
         boxed_imgs = boxed_imgs.unsqueeze(1)
         # boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
         # labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()

@@ -52,3 +52,19 @@ class ConditionalGenerator(nn.Module):
         # img = self.model(gen_input)
         # img = img.view(img.size(0), *self.input_shape)
         return img
+
+
+    def visualize(self, z, labels):
+        # Concatenate label embedding and image to produce input
+        gen_input = torch.cat((self.label_emb(labels), z), -1)
+        # print(gen_input.size())
+        gen_input = self.fc(gen_input)
+        gen_input = gen_input.view(-1, 128, 8, 8)
+        # gen_input = gen_input.unsqueeze(1)
+        # gen_input = gen_input.unsqueeze(2)
+        img = self.conv(gen_input)
+# 
+        # print(img.size())
+        # img = self.model(gen_input)
+        # img = img.view(img.size(0), *self.input_shape)
+        return img

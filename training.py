@@ -314,15 +314,18 @@ def visualize_gan(model, dataloader, layer, visualize_fake=False):
 
         # Generate a batch of images
         gen_imgs = model.generator(z, gen_labels)
-        model.c.visualize(gen_imgs, gen_labels)
-        model.d.visualize(gen_imgs)
+        # model.c.visualize(gen_imgs, gen_labels)
+        model.d.visualize_class(gen_imgs, gen_labels)
         model.vis_layer(gen_imgs, layer=layer, classifier=True)
         model.vis_layer(gen_imgs, layer=layer, classifier=False)
+        model.vis_layer_gen(layer=8)
     else:
-        model.c.visualize(sample, label)
+        # model.c.visualize(sample, label)
         model.d.visualize(sample)
+        model.d.visualize_class(sample, label)
         model.vis_layer(sample, layer=layer, classifier=True)
         model.vis_layer(sample, layer=layer, classifier=False)
+        model.vis_layer_gen(layer=3)
 
     # print(sample.size(), label.size())
     # print(next(sample))

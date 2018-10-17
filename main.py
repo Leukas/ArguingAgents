@@ -48,7 +48,7 @@ gan = GAN(generator, discriminator, classifier).to(device)
 # model_path = './models/mnist/test_video2.pt'
 # model_path = './models/mnist/testing3.pt'
 # model_path = './models/mnist/testing5.pt'
-model_path = './models/mnist/testing6.pt'
+model_path = './models/mnist/testing_shared.pt'
 
 
 if os.path.exists(model_path):
@@ -58,4 +58,4 @@ if os.path.exists(model_path):
 # train_cgan_shared_weights(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, latent_dim=args.latent_dim, save_path=model_path)
 # visualize_gan(gan.eval(), dataloaders['test'], visualize_fake=True)
 # gan = train_disc(gan, dataloaders['train'], latent_dim=args.latent_dim)
-visualize_gan(gan.eval(), dataloaders['test'], layer=10, visualize_fake=False)
+visualize_gan(gan.eval(), dataloaders['test'], layer=3, visualize_fake=False)

@@ -65,3 +65,21 @@ class ConditionalDiscriminator(nn.Module):
         save_image(validity, './images/vis/d_sample.png')
         save_image(img, './images/vis/d_imgs.png')
         return validity
+
+    def visualize_class(self, img, labels):
+        # boxed_imgs, dims = add_black_boxes(img, (10, 10), stride=1)
+        # boxed_imgs = boxed_imgs.unsqueeze(1)
+        boxed_imgs, dims = black_box_module(img, (10, 10), stride=1)
+        # boxed_imgs = boxed_imgs.view(boxed_imgs.size(0), -1)
+        # labels = labels.expand(int(dims[0]*dims[1]), -1).t().flatten()
+        classes = self.classify(boxed_imgs)
+        classes = F.softmax(classes, dim=1)
+
+        # print(classes.size(), labels.size())
+        labels = labels.unsqueeze(1).expand(labels.size(0),int(dims[0]*dims[1])).contiguous().view(-1)
+        classes = torch.gather(classes, 1, labels.unsqueeze(1)) # class prob for label
+        classes = classes.view(-1, 1, dims[0], dims[1])
+        # classes = torch.max(classes, dim=1)[1]
+        save_image(classes, './images/vis/dc_sample.png')
+        save_image(img, './images/vis/dc_imgs.png')
+        return classes

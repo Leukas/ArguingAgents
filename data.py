@@ -239,4 +239,3 @@ def get_feret_DataLoaders(batch_size=32):
 
     return feret_Dataset()
                     
-get_feret_DataLoaders()

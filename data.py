@@ -4,6 +4,8 @@ import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets
+from scipy.misc import imread
+import numpy as np
 
 
 # Configure data loader
@@ -225,16 +227,16 @@ def get_VIM_dataloaders(batch_size=32):
 def get_feret_DataLoaders(batch_size=32):
 
     class feret_Dataset(Dataset):
-        def __init__(self, subjects_path="/media/zalty/403F-6532/colorferet/colorferet/dvd2/doc/subject_counts.out"):
+        def __init__(self, path_base="/media/zalty/403F-6532/colorferet/colorferet/"):
 
-            with open(subjects_path, 'r') as f:
+            subjs=[]
+            with open(path_base+"dvd2/doc/subject_counts.out", 'r') as f:
                 for line in f:
-                    subjs = line.split()[0]
+                    subjs.append(line.split()[0])
 
-            print(subjs)
             self.subjects = subjs # ???
-
+            print(subjs[3:5])
 
     return feret_Dataset()
                     
-#get_feret_DataLoaders()
+get_feret_DataLoaders()

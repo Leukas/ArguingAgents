@@ -2,7 +2,7 @@ import argparse
 import os
 import torch
 
-from training import train_cgan, visualize_gan
+from training import *
 from data import *
 
 from networks import device
@@ -46,12 +46,16 @@ gan = GAN(generator, discriminator, classifier).to(device)
 # model_path = './models/cifar10/test300.pt'
 # model_path = './models/mnist/testin9.pt'
 # model_path = './models/mnist/test_video2.pt'
-model_path = './models/mnist/testing3.pt'
+# model_path = './models/mnist/testing3.pt'
+# model_path = './models/mnist/testing5.pt'
+model_path = './models/mnist/testing6.pt'
 
 
 if os.path.exists(model_path):
     gan.load_state_dict(torch.load(model_path))
 
 # print(torch.cuda.is_available())
-# train_cgan(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, latent_dim=args.latent_dim, save_path=model_path)
-visualize_gan(gan.eval(), dataloaders['test'], visualize_fake=False)
+# train_cgan_shared_weights(gan, dataloaders['train'], epochs=args.n_epochs, sample_interval=2000, latent_dim=args.latent_dim, save_path=model_path)
+# visualize_gan(gan.eval(), dataloaders['test'], visualize_fake=True)
+# gan = train_disc(gan, dataloaders['train'], latent_dim=args.latent_dim)
+visualize_gan(gan.eval(), dataloaders['test'], layer=10, visualize_fake=False)

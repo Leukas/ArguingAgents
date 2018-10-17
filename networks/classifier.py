@@ -14,20 +14,20 @@ class Classifier(nn.Module):
 
         self.conv = nn.Sequential(
             nn.Conv2d(num_channels, 8, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(8, 8, 3, stride=2, padding=1),
             nn.Conv2d(8, 16, 3, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(16, 16, 3, stride=2, padding=1),
             nn.Conv2d(16, 32, 3, padding=1),
             nn.Dropout(0.25),
-            # nn.Conv2d(64, 64, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, 3, stride=2, padding=1),
             nn.Conv2d(32, 64, 3, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(64, 64, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.ReLU(inplace=True),
             nn.Dropout(0.25),
         )
 

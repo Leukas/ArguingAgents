@@ -2,6 +2,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision.utils import save_image
 from . import device
 from .noise import black_box_module, add_black_boxes
@@ -14,36 +15,42 @@ class ConditionalDiscriminator(nn.Module):
 
         self.conv = nn.Sequential(
             nn.Conv2d(num_channels, 8, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(8, 8, 3, stride=2, padding=1),
             nn.Conv2d(8, 16, 3, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(16, 16, 3, stride=2, padding=1),
             nn.Conv2d(16, 32, 3, padding=1),
             nn.Dropout(0.25),
-            # nn.Conv2d(64, 64, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, 3, stride=2, padding=1),
             nn.Conv2d(32, 64, 3, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.ReLU(inplace=True),
             nn.Conv2d(64, 64, 3, stride=2, padding=1),
-            nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.ReLU(inplace=True),
             nn.Dropout(0.25),
         )
 
         self.fc = nn.Linear(64, 1)
+        self.fc2 = nn.Linear(64, num_classes)
 
     def forward(self, img, labels=None):
         # Concatenate label embedding and image to produce input
         batch_size = img.size(0)
         x = self.conv(img)
         x = x.view(batch_size, -1)
-        # x = torch.cat((x, self.label_embedding(labels)), -1)
         x = self.fc(x)
-        # d_in = torch.cat((img.view(img.size(0), -1), self.label_embedding(labels)), -1)
-        # validity = self.model(d_in)
+        x = torch.sigmoid(x)
         return x
 
+    def classify(self, img, labels=None):
+        # Concatenate label embedding and image to produce input
+        batch_size = img.size(0)
+        x = self.conv(img)
+        x = x.view(batch_size, -1)
+        x = self.fc2(x)
+        return x
 
     def visualize(self, img):
         # boxed_imgs, dims = add_black_boxes(img, (10, 10), stride=1)

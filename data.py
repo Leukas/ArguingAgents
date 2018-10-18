@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets
 from scipy.misc import imread
 import numpy as np
+import scipy.io
 
 
 # Configure data loader
@@ -234,8 +235,18 @@ def get_feret_DataLoaders(batch_size=32):
                 for line in f:
                     subjs.append(line.split()[0])
 
-            self.subjects = subjs # ???
-            print(subjs[3:5])
+            self.subjects = subjs
+
+            feret_data = scipy.io.loadmat(path_base+'imnum.mat')
+            feret_label_date = scipy.io.loadmat(path_base+'label_date.mat')
+            feret_label_gender = scipy.io.loadmat(path_base+'label_gender.mat')
+            feret_label_pose = scipy.io.loadmat(path_base+'label_pose.mat')
+            feret_label_race = scipy.io.loadmat(path_base+'label_race.mat')
+            feret_label_subj = scipy.io.loadmat(path_base+'label_subj.mat')
+            feret_label_year = scipy.io.loadmat(path_base+'label_year.mat')
+
+            print(len(feret_label_year))
+
 
     return feret_Dataset()
                     

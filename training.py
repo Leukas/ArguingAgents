@@ -123,7 +123,7 @@ def train_cgan(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterio
                 # save_image(gen_imgs.data[:25], 'images/%d.png' % batches_done, nrow=5, normalize=True)
 
 def train_cgan_shared_weights(model, dataloader, epochs=1, lr=0.0002, optimizers=None, criterion=None, 
-    latent_dim=100, sample_interval=400, img_shape=None, save_path=None):
+    latent_dim=100, sample_interval=400, img_shape=None, save_path=None, vis=False):
     
     if img_shape is None:
         img_shape = (1,28,28)
@@ -223,8 +223,9 @@ def train_cgan_shared_weights(model, dataloader, epochs=1, lr=0.0002, optimizers
             if batches_done % sample_interval == 0:
                 if save_path is not None:
                     torch.save(model.state_dict(), save_path)#+'%d.pt' % batches_done)
+                if vis:
+                    sample_gan(model, latent_dim, batches_done)
 
-                sample_gan(model, latent_dim, batches_done)
                 # save_image(gen_imgs.data[:25], 'im
 
 
@@ -296,36 +297,33 @@ def sample_gan(model, latent_dim, batches_done):
     gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),4)).to(device)
     gen_imgs = model.generator(z, gen_labels)
 
-    save_image(gen_imgs.data[:40], 'images/u%d.png' % batches_done, nrow=10, normalize=True)
+    save_image(gen_imgs.data[:40], 'images/%06d.png' % batches_done, nrow=10, normalize=True)
 
 
-def visualize_gan(model, dataloader, layer, visualize_fake=False):    
+def visualize_gan(model, dataloader, layer, visualize_fake=False, filename_suffix=""):    
     sample = iter(dataloader)
     sample, label = next(sample)
     sample = sample.to(device)
     label = label.to(device)
-    batch_size = sample.size(0)
     if visualize_fake:
         # z = torch.FloatTensor(np.random.normal(0, 1, (sample.shape[0], model.g.latent_dim))).to(device)
         z = torch.FloatTensor(np.random.normal(0, 1, (model.g.num_classes*2, model.g.latent_dim))).to(device)
         gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),2)).to(device)
-    
+
         # gen_labels = torch.LongTensor(np.random.randint(0, model.generator.num_classes, batch_size)).to(device)
 
         # Generate a batch of images
         gen_imgs = model.generator(z, gen_labels)
         # model.c.visualize(gen_imgs, gen_labels)
         model.d.visualize_class(gen_imgs, gen_labels)
-        model.vis_layer(gen_imgs, layer=layer, classifier=True)
-        model.vis_layer(gen_imgs, layer=layer, classifier=False)
-        model.vis_layer_gen(layer=8)
+        model.vis_layer(gen_imgs, layer=layer, classifier=True, filename_suffix=filename_suffix+'_fake_')
+        model.vis_layer(gen_imgs, layer=layer, classifier=False, filename_suffix=filename_suffix+'_fake_')
+        model.vis_layer_gen(layer=layer, filename_suffix=filename_suffix+'_fake_')
     else:
         # model.c.visualize(sample, label)
         model.d.visualize(sample)
         model.d.visualize_class(sample, label)
-        model.vis_layer(sample, layer=layer, classifier=True)
-        model.vis_layer(sample, layer=layer, classifier=False)
-        model.vis_layer_gen(layer=3)
+        model.vis_layer(sample, layer=layer, classifier=True, filename_suffix=filename_suffix+'_real_')
+        model.vis_layer(sample, layer=layer, classifier=False, filename_suffix=filename_suffix+'_real_')
+        model.vis_layer_gen(layer=layer, filename_suffix=filename_suffix+'_real_')
 
-    # print(sample.size(), label.size())
-    # print(next(sample))

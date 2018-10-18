@@ -16,12 +16,14 @@ class GAN(nn.Module):
         self.c = self.classifier
 
 
-    def vis_layer(self, img, layer=6, classifier=True):
+    def vis_layer(self, img, layer=6, classifier=True, filename_suffix=""):
         if classifier:
             module = self.classifier
         else:
             module = self.discriminator
 
+        conv_layer_nums = [2, 5, 9, 12]
+        layer = conv_layer_nums[layer]
 
         for feature_num in range(module.conv[layer].weight.size(0)):
             x = module.conv[0:layer+1](img)
@@ -59,10 +61,12 @@ class GAN(nn.Module):
             # print(x.size())
 
             module_str = "classifier" if classifier else "discriminator"
-            save_image(x, './images/vis/%s_sample_%04d.png' % (module_str, feature_num), nrow=10)
+            save_image(x, './images/vis/%s_'+filename_suffix+'_sample_%04d.png' % (module_str, feature_num), nrow=10)
 
+    def vis_layer_gen(self, layer=6, filename_suffix=""):
+        conv_layer_nums = [2, 6, 9, 10]
+        layer = conv_layer_nums[layer]
 
-    def vis_layer_gen(self, layer=6):
         module = self.generator
         z = torch.FloatTensor(np.random.normal(0, 1, (module.num_classes*2, module.latent_dim))).to(device)
         gen_labels = torch.LongTensor(np.tile(np.arange(module.num_classes),2)).to(device)
@@ -85,4 +89,6 @@ class GAN(nn.Module):
             x = x[:, feature_num].unsqueeze(1)
             # print(type(x))
             # print(x.dtype, x.size())
-            save_image(x, './images/vis/%s_sample_%04d.png' % (module_str, feature_num), nrow=10)
+            save_image(x, './images/vis/%s_'+filename_suffix+'_sample_%04d.png' % (module_str, feature_num), nrow=10)
+
+

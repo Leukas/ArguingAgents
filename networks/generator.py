@@ -36,7 +36,7 @@ class ConditionalGenerator(nn.Module):
             nn.Conv2d(128, 64, 3, stride=1, padding=1),
             nn.Conv2d(64, 64, 3, stride=1, padding=1),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Upsample(scale_factor=2),
+            # nn.Upsample(scale_factor=2),
             nn.Conv2d(64, 64, 3, stride=1, padding=1),
             nn.BatchNorm2d(64, 0.8),
             nn.LeakyReLU(0.2, inplace=True),

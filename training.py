@@ -216,6 +216,9 @@ def train_cgan_shared_weights(model, dataloader, epochs=1, lr=0.0002, optimizers
 
 
             if i % 100 == 0:
+                print(d_loss.item())
+                print(c_loss.item())
+                print(g_loss.item())
                 print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f] [C loss: %f]" % (epoch, epochs, i, len(dataloader),
                                                                 d_loss.item(), g_loss.item(), c_loss.item()))
 
@@ -292,11 +295,11 @@ def train_disc(model, dataloader, lr=0.0002, optimizers=None, criterion=None,
 
 
 def sample_gan(model, latent_dim, batches_done):
-    z = torch.FloatTensor(np.random.normal(0, 1, (model.g.num_classes*4, latent_dim))).to(device)
-    gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),4)).to(device)
+    z = torch.FloatTensor(np.random.normal(0, 1, (model.g.num_classes*2, latent_dim))).to(device)
+    gen_labels = torch.LongTensor(np.tile(np.arange(model.g.num_classes),2)).to(device)
     gen_imgs = model.generator(z, gen_labels)
 
-    save_image(gen_imgs.data[:40], 'images/u%d.png' % batches_done, nrow=10, normalize=True)
+    save_image(gen_imgs.data[:2*model.g.num_classes], 'images/u%d.png' % batches_done, nrow=model.g.num_classes, normalize=True)
 
 
 def visualize_gan(model, dataloader, layer, visualize_fake=False):    

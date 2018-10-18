@@ -24,6 +24,8 @@ class ConditionalDiscriminator(nn.Module):
             nn.Dropout(0.25),
             nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, 3, stride=2, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 32, 3, stride=2, padding=1),
             nn.Conv2d(32, 64, 3, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(64, 64, 3, stride=2, padding=1),

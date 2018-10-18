@@ -17,23 +17,34 @@ class ConditionalGenerator(nn.Module):
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
-        self.fc = nn.Linear(latent_dim + num_classes, 128 * 8 * 8)
+        self.init_channels = 128
+        self.fc = nn.Linear(latent_dim + num_classes, self.init_channels * 8 * 8)
 
 
         self.conv = nn.Sequential(
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(self.init_channels),
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),
-            nn.BatchNorm2d(128, 0.8),
+            nn.Conv2d(self.init_channels, self.init_channels, 3, stride=1, padding=1),
+            nn.Conv2d(self.init_channels, self.init_channels, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(self.init_channels, self.init_channels, 3, stride=1, padding=1),
+            nn.BatchNorm2d(self.init_channels, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Upsample(scale_factor=2),
+            nn.Conv2d(self.init_channels, 128, 3, stride=1, padding=1),
+            nn.BatchNorm2d(128, 0.8),
             nn.Conv2d(128, 64, 3, stride=1, padding=1),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Upsample(scale_factor=2),
             nn.Conv2d(64, 64, 3, stride=1, padding=1),
             nn.BatchNorm2d(64, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
             # nn.Conv2d(64, 64, 3, stride=1, padding=1),
-            nn.Conv2d(64, num_channels, 3, stride=1, padding=1),
+            nn.Conv2d(64, 32, 3, stride=1, padding=1),
+            nn.Conv2d(32, 32, 3, stride=1, padding=1),
+            nn.Conv2d(32, num_channels, 3, stride=1, padding=1),
+            # nn.Conv2d(num, num_channels, 3, stride=1, padding=1),
             nn.Tanh()
 
         )
@@ -43,7 +54,7 @@ class ConditionalGenerator(nn.Module):
         gen_input = torch.cat((self.label_emb(labels), z), -1)
         # print(gen_input.size())
         gen_input = self.fc(gen_input)
-        gen_input = gen_input.view(-1, 128, 8, 8)
+        gen_input = gen_input.view(-1, self.init_channels, 8, 8)
         # gen_input = gen_input.unsqueeze(1)
         # gen_input = gen_input.unsqueeze(2)
         img = self.conv(gen_input)
@@ -59,7 +70,7 @@ class ConditionalGenerator(nn.Module):
         gen_input = torch.cat((self.label_emb(labels), z), -1)
         # print(gen_input.size())
         gen_input = self.fc(gen_input)
-        gen_input = gen_input.view(-1, 128, 8, 8)
+        gen_input = gen_input.view(-1, self.init_channels, 8, 8)
         # gen_input = gen_input.unsqueeze(1)
         # gen_input = gen_input.unsqueeze(2)
         img = self.conv(gen_input)

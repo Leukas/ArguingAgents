@@ -11,6 +11,7 @@
 %% Dependencies
 %
 % Octave (not tested for MATLAB compatibility)
+% https://www.gnu.org/software/octave/
 %
 % pkg install -forge image
 % pkg load image

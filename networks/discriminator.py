@@ -1,3 +1,6 @@
+# discriminator.py
+# Lukas Edman
+
 import numpy as np
 
 import torch
@@ -10,7 +13,9 @@ from .noise import black_box_module, add_black_boxes
 class ConditionalDiscriminator(nn.Module):
     def __init__(self, num_channels, num_classes):
         super().__init__()
-        # self.num_classes = num_classes
+        self.num_channels = num_channels
+
+        self.num_classes = num_classes
         # self.label_embedding = nn.Embedding(num_classes, num_classes)
 
         self.conv = nn.Sequential(
@@ -52,7 +57,8 @@ class ConditionalDiscriminator(nn.Module):
         x = self.fc2(x)
         return x
 
-    def visualize(self, img):
+    def visualize(self, img, filename_suffix=""):
+        """ Visualize output of discriminator with sliding box method """
         # boxed_imgs, dims = add_black_boxes(img, (10, 10), stride=1)
         # boxed_imgs = boxed_imgs.unsqueeze(1)
         boxed_imgs, dims = black_box_module(img, (10, 10), stride=1)
@@ -62,11 +68,12 @@ class ConditionalDiscriminator(nn.Module):
         # d_in = torch.cat((boxed_imgs, self.label_embedding(labels)), -1)
         validity = self(boxed_imgs)
         validity = validity.view(-1, 1, dims[0], dims[1])
-        save_image(validity, './images/vis/d_sample.png')
-        save_image(img, './images/vis/d_imgs.png')
+        save_image(validity, './images/vis/d/sample%s.png' % filename_suffix)
+        save_image(img, './images/vis/d/imgs%s.png' % filename_suffix)
         return validity
 
     def visualize_class(self, img, labels):
+        """ Visualize output of classifier w/ shared weights with sliding box method """
         # boxed_imgs, dims = add_black_boxes(img, (10, 10), stride=1)
         # boxed_imgs = boxed_imgs.unsqueeze(1)
         boxed_imgs, dims = black_box_module(img, (10, 10), stride=1)
@@ -80,6 +87,6 @@ class ConditionalDiscriminator(nn.Module):
         classes = torch.gather(classes, 1, labels.unsqueeze(1)) # class prob for label
         classes = classes.view(-1, 1, dims[0], dims[1])
         # classes = torch.max(classes, dim=1)[1]
-        save_image(classes, './images/vis/dc_sample.png')
-        save_image(img, './images/vis/dc_imgs.png')
+        save_image(classes, './images/vis/dc_sample.png', nrow=self.num_classes)
+        save_image(img, './images/vis/dc_imgs.png', nrow=self.num_classes)
         return classes

@@ -6,6 +6,7 @@ import torch.nn as nn
 class ConditionalGenerator(nn.Module):
     def __init__(self, num_channels, num_classes, latent_dim=100):
         super().__init__()
+        self.num_channels = num_channels
         self.num_classes = num_classes
         self.latent_dim = latent_dim
         self.label_emb = nn.Embedding(num_classes, num_classes)
@@ -17,14 +18,16 @@ class ConditionalGenerator(nn.Module):
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             return layers
 
-        self.fc = nn.Linear(latent_dim + num_classes, 256 * 8 * 8)
+        self.init_channels = 256
+
+        self.fc = nn.Linear(latent_dim + num_classes, self.init_channels * 8 * 8)
 
 
         self.conv = nn.Sequential(
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(self.init_channels),
             # nn.Upsample(scale_factor=2),
-            nn.ConvTranspose2d(256, 256, 3, stride=2, output_padding=1, padding=1),
-            nn.ConvTranspose2d(256, 128, 3, stride=1, padding=1),
+            nn.ConvTranspose2d(self.init_channels, self.init_channels, 3, stride=2, output_padding=1, padding=1),
+            nn.ConvTranspose2d(self.init_channels, 128, 3, stride=1, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             # nn.LeakyReLU(0.2, inplace=True),
@@ -44,30 +47,22 @@ class ConditionalGenerator(nn.Module):
     def forward(self, z, labels):
         # Concatenate label embedding and image to produce input
         gen_input = torch.cat((self.label_emb(labels), z), -1)
-        # print(gen_input.size())
+
         gen_input = self.fc(gen_input)
-        gen_input = gen_input.view(-1, 256, 8, 8)
-        # gen_input = gen_input.unsqueeze(1)
-        # gen_input = gen_input.unsqueeze(2)
+        gen_input = gen_input.view(-1, self.init_channels, 8, 8)
+
         img = self.conv(gen_input)
-# 
-        # print(img.size())
-        # img = self.model(gen_input)
-        # img = img.view(img.size(0), *self.input_shape)
+
         return img
 
 
     def visualize(self, z, labels):
         # Concatenate label embedding and image to produce input
         gen_input = torch.cat((self.label_emb(labels), z), -1)
-        # print(gen_input.size())
+
         gen_input = self.fc(gen_input)
-        gen_input = gen_input.view(-1, 256, 8, 8)
-        # gen_input = gen_input.unsqueeze(1)
-        # gen_input = gen_input.unsqueeze(2)
+        gen_input = gen_input.view(-1, self.init_channels, 8, 8)
+
         img = self.conv(gen_input)
-# 
-        # print(img.size())
-        # img = self.model(gen_input)
-        # img = img.view(img.size(0), *self.input_shape)
+
         return img

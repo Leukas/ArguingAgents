@@ -6,7 +6,8 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets
 from scipy.misc import imread
 import numpy as np
-
+import scipy.io
+from PIL import Image
 
 # Configure data loader
 def get_MNIST_dataloaders(batch_size):
@@ -28,6 +29,7 @@ def get_MNIST_dataloaders(batch_size):
             train=False, 
             download=True,
             transform=transforms.Compose([
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])),
@@ -65,7 +67,7 @@ def get_CIFAR10_dataloaders(batch_size):
 # Dataset class
 class EEGDataset:
     # Constructor
-    def __init__(self, download_imagenet=True, eeg_signals_path="./data/eeg_signals_128_sequential_band_all_with_mean_std.pth"):
+    def __init__(self, eeg_signals_path="./data/eeg_signals_128_sequential_band_all_with_mean_std.pth"):
         # Load EEG signals
         loaded = torch.load(eeg_signals_path)
         self.data = loaded["dataset"]
@@ -78,8 +80,6 @@ class EEGDataset:
         self.stddevs = loaded["stddevs"]
         # Compute size
         self.size = len(self.data)
-        if download_imagenet:
-            self.download_imagenet()
 
     # Get size
     def __len__(self):
@@ -90,29 +90,12 @@ class EEGDataset:
         # Process EEG
         eeg = ((self.data[i]["eeg"].float() - self.means)/self.stddevs).t()
         eeg = eeg[20:450,:].unsqueeze(0)
-        # print(self.data[i])
-        # print(self.images[self.data[i]["image"]])
-        # print(self.labels[self.data[i]["label"]])
-        # print(self.images[i])
         # Get label
         label = self.data[i]["label"]
         img_id = self.images[self.data[i]["image"]]
         # Return
         return eeg, label, img_id
 
-    def download_imagenet(self):
-        import urllib
-        url_dict = get_imagenet_url_dict()
-        if not os.path.isdir('./data/imagenet/'):
-            os.mkdir('./data/imagenet/')
-
-        for key in self.images:
-            url = url_dict[key]
-            url_ext = url.split('.')[-1]
-            x = urllib.urlretrieve(url, key + '.' + url_ext)
-            print(x)
-            break
-        # pass
 
 def get_imagenet_url_dict(path='./data/fall11_urls.txt'):
     url_dict = {}
@@ -224,18 +207,86 @@ def get_VIM_dataloaders(batch_size=32):
     return dataloaders
 
 
-def get_feret_DataLoaders(batch_size=32):
+def get_Feret_dataloaders(batch_size=32, img_size=(64,64)):
 
-    class feret_Dataset(Dataset):
-        def __init__(self, path_base="/media/zalty/403F-6532/colorferet/colorferet/"):
+    class Feret_Dataset(Dataset):
+        def __init__(self, path_base="./data/colorferet/", img_size=(64,64)):
 
             subjs=[]
-            with open(path_base+"dvd2/doc/subject_counts.out", 'r') as f:
-                for line in f:
-                    subjs.append(line.split()[0])
+            # with open(path_base+"dvd2/doc/subject_counts.out", 'r') as f:
+            #     for line in f:
+            #         subjs.append(line.split()[0])
 
-            self.subjects = subjs # ???
-            print(subjs[3:5])
+            self.subjects = subjs
 
-    return feret_Dataset()
+            feret_data = scipy.io.loadmat(path_base+'imnum.mat')
+            feret_data = feret_data['imnum'].squeeze()
+            print(feret_data[0].shape)
+            feret_label_date = scipy.io.loadmat(path_base+'label_date.mat')
+            feret_label_gender = scipy.io.loadmat(path_base+'label_gender.mat')
+            feret_label_pose = scipy.io.loadmat(path_base+'label_pose.mat')
+            feret_label_pose = feret_label_pose['label_pose']
+            feret_label_race = scipy.io.loadmat(path_base+'label_race.mat')
+            feret_label_subj = scipy.io.loadmat(path_base+'label_subj.mat')
+            feret_label_year = scipy.io.loadmat(path_base+'label_year.mat')
+            feret_label_year = feret_label_year['label_year'].astype(np.int32)
+            # print(feret_label_year['label_year'].astype(np.int32))
+            # print(len(feret_label_year))
+            # face_mask = ((feret_label_pose == 'fa') and (feret_label_pose == 'fb'))
+            # feret_data_fa = feret_data[]
+            feret_data_fa = feret_data[feret_label_pose == 'fa']
+            feret_data_fb = feret_data[feret_label_pose == 'fb']
+            feret_label_year_fa = feret_label_year[feret_label_pose == 'fa']
+            feret_label_year_fb = feret_label_year[feret_label_pose == 'fb']
+            # print(feret_data_fa.shape)
+            # print(feret_data_fb.shape)
+            feret_data_face = np.hstack((feret_data_fa, feret_data_fb))
+            feret_label_year_face = np.hstack((feret_label_year_fa, feret_label_year_fb))
+            # print(feret_data_face.shape)
+            # print(feret_label_year_face.shape)
+            # feret_data_face = n
+            # print(feret_label_pose[feret_label_pose == 'fa'])
+            # print(feret_data.shape)
+            # print(feret_label_year.shape)
+            self.data = torch.zeros((len(feret_data_face), img_size[0], img_size[1])).float()
+            self.labels = torch.zeros(len(feret_label_year_face)).long()
+            years = np.unique(feret_label_year_face)
+
+            for i, datum in enumerate(feret_data_face):
+                img = Image.fromarray(datum)
+                img = img.resize((img_size[0],img_size[1]), resample=Image.LANCZOS)
+                img = torch.Tensor(np.array(img))
+                img = 2*img/255-1
+                self.data[i] = img
+                self.labels[i] = torch.LongTensor(np.where(years==feret_label_year_face[i])[0])
+
+
+
+            self.data = self.data.unsqueeze(1)
+
+            # print(self.data.size())
+            # print(self.labels.size())
+            # self.data = feret_data_face
+            # bc
+            # bc = np.bincount(feret_label_year_face)
+            # bc = feret_label_year_face[bc!=0]
+            # print(bc)
+            # print(len(bc[bc!=0]))
+            # self.labels = torch.LongTensor(feret_label_year_face
+            # data = torch.Tensor(feret_data_face)
+            # data = torch.Tensor(feret_data_face)
+
+        def __len__(self):
+            return len(self.data)
+
+        def __getitem__(self, i):  
+            return self.data[i], self.labels[i]
+    
+    ds = DataLoader(Feret_Dataset(img_size=img_size), batch_size,  shuffle=True)
+    dataloaders = {
+        "train": ds,
+        "test": ds
+    }
+
+    return dataloaders
                     

@@ -2,12 +2,6 @@
 % https://www.nist.gov/itl/iad/image-group/color-feret-database 
 
 
-%% subject label example
-% id=cfrS00001
-% gender=Male
-% yob=1943
-% race=White
-
 %% Dependencies
 %
 % Octave (not tested for MATLAB compatibility)
@@ -18,6 +12,12 @@
 
 %% 1 and 2 corresponds to dvd1 and dvd2
 %% unzipped files dissapear when zipped
+
+%% subject label example
+% id=cfrS00001
+% gender=Male
+% yob=1943
+% race=White
 
 pkg load image
 

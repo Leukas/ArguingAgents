@@ -1,14 +1,17 @@
-% labels
-% in
-% /media/zalty/403F-6532/colorferet/colorferet/dvd[1 2]/data/ground_truths/name_value/xxxxx/xxxxx.txt
+% This is a script for extracting (.bzip2), reading (.ppm) and saving (.mat) data aquired from 
+% https://www.nist.gov/itl/iad/image-group/color-feret-database 
 
-% example
+
+%% subject label example
 % id=cfrS00001
 % gender=Male
 % yob=1943
 % race=White
 
 %% Dependencies
+%
+% Octave (not tested for MATLAB compatibility)
+%
 % pkg install -forge image
 % pkg load image
 
@@ -33,12 +36,14 @@ slab_year = [];
 slab_race = [];
 
 for k=1:size(subj1)(1)
-  
-  %files1 = char(readdir([basedir, 'dvd1/data/thumbnails/',subj1(k,:)]))(3:end,:);
-  %for l=1:size(files1)(1)
-  %bunzip2([basedir, 'dvd1/data/thumbnails/',subj1(k,:),'/',files1(l,:)],basedir,datadir);
-  %endfor
+
+  % unzipping files
+  files1 = char(readdir([basedir, 'dvd1/data/thumbnails/',subj1(k,:)]))(3:end,:);
+  for l=1:size(files1)(1)
+  bunzip2([basedir, 'dvd1/data/thumbnails/',subj1(k,:),'/',files1(l,:)],basedir,datadir);
+  endfor
     
+  % get subject lables
   slab = textread([basedir, 'dvd1/data/ground_truths/name_value/',subj1(k,:),'/',subj1(k,:),'.txt'],'%s');
   slab_id = [slab_id; slab{1}(8:end)];
   slab_gender = [slab_gender; slab{2}(8)];
@@ -47,13 +52,13 @@ for k=1:size(subj1)(1)
   
 endfor
 
-
+% same but from dvd 2
 for k=1:size(subj2)(1)
   
-  %files2 = char(readdir([basedir,'dvd2/data/thumbnails/',subj2(k,:)]))(3:end,:);
-  %for l=1:size(files2)(1)
-  %bunzip2([basedir,'dvd2/data/thumbnails/',subj2(k,:),'/',files2(l,:)],basedir,datadir);
-  %endfor
+  files2 = char(readdir([basedir,'dvd2/data/thumbnails/',subj2(k,:)]))(3:end,:);
+  for l=1:size(files2)(1)
+  bunzip2([basedir,'dvd2/data/thumbnails/',subj2(k,:),'/',files2(l,:)],basedir,datadir);
+  endfor
   
   slab = textread([basedir, 'dvd2/data/ground_truths/name_value/',subj2(k,:),'/',subj2(k,:),'.txt'],'%s');
   slab_id = [slab_id; slab{1}(8:end)];
@@ -64,8 +69,7 @@ for k=1:size(subj2)(1)
 endfor
 
 
-%% read files and more labels
-
+%%% read files and more labels
 
 imfiles = readdir([basedir2,datadir])(3:end);
 imnum={};
@@ -84,9 +88,9 @@ for k=1:size(imfiles)(1)
   %  continue
   %end_try_catch
   
+  % read images, convert to grayscale
   imnum{length(imnum)+1}=rgb2gray(imread([basedir, datadir, imfiles{k}]));
   label{length(label)+1}=imfiles{k}(1:end-4);
-  
   
   label_subj=[label_subj; label{k}(1:5)];
   label_date=[label_date; label{k}(7:12)];
@@ -94,6 +98,7 @@ for k=1:size(imfiles)(1)
   
 endfor
 
+% get image labels
 label_year = [];
 label_race = [];
 label_gender = [];
